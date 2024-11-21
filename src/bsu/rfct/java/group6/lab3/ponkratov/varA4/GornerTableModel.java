@@ -29,38 +29,50 @@ public class GornerTableModel extends AbstractTableModel {
     }
 
     public int getColumnCount() {
-        // В данной модели три столбца
         return 3;
     }
 
     public int getRowCount() {
-        // Вычислить количество точек между началом и концом отрезка
-        // исходя из шага табулирования
-        return (new Double(Math.ceil((to - from) / step))).intValue() + 1;
+        return (int) Math.ceil((to - from) / step) + 1;
     }
 
     public Object getValueAt(int row, int col) {
-        // Вычислить значение X как НАЧАЛО_ОТРЕЗКА + ШАГ * НОМЕР_СТРОКИ
         double x = from + step * row;
         if (col == 0) {
-            // Если запрашивается значение 1-го столбца, то это X
-            return x;
+            return roundToTwoDecimalPlaces(x);
         } else {
-            // Если запрашивается значение 2-го столбца, то это значение многочлена
             double result = 0.0;
             for (int i = 0; i < coefficients.length; ++i) {
-                result += coefficients[i] * Math.pow(x, (double) (coefficients.length - i - 1));
+                result += coefficients[i] * Math.pow(x, coefficients.length - i - 1);
             }
 
+            // Округляем результат
+            double roundedResult = roundToTwoDecimalPlaces(result);
+
             if (col == 1) {
-                return result;
+                return roundedResult;
             } else {
-                // Проверка, является ли дробная часть нечётным целым числом
-                double fractionalPart = result - Math.floor(result);
-                int fractionalAsInteger = (int) Math.round(fractionalPart * 100); // Умножаем на 100 для более точной проверки
-                return (fractionalAsInteger % 2 != 0);
+                // Преобразуем округленный результат в строку
+                String resultStr = String.valueOf(roundedResult);
+                // Извлекаем дробную часть
+                String fractionalPart = resultStr.contains(".") ?
+                        resultStr.substring(resultStr.indexOf('.') + 1) : "0";
+
+                // Проверяем последнюю цифру дробной части
+                if (!fractionalPart.isEmpty()) {
+                    char lastDigitChar = fractionalPart.charAt(fractionalPart.length() - 1);
+                    int lastDigitValue = Character.getNumericValue(lastDigitChar);
+                    // Возвращаем true, если последняя цифра нечетная
+                    return (lastDigitValue % 2 != 0);
+                } else {
+                    return false; // Если дробной части нет, возвращаем false
+                }
             }
         }
+    }
+
+    private double roundToTwoDecimalPlaces(double value) {
+        return Math.round(value * 100.0) / 100.0;
     }
 
     public String getColumnName(int col) {
@@ -74,7 +86,6 @@ public class GornerTableModel extends AbstractTableModel {
         }
     }
 
-    public Class<?> getColumnClass(int col) {
-        return col == 2 ? Boolean.class : Double.class;
+    public Class<?> getColumnClass(int col) {  return col == 2 ? Boolean.class : Double.class;
     }
 }
