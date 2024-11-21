@@ -1,8 +1,8 @@
 package bsu.rfct.java.group6.lab3.ponkratov.varA4;
 
-
 import javax.swing.table.AbstractTableModel;
 
+@SuppressWarnings("serial")
 public class GornerTableModel extends AbstractTableModel {
     private Double[] coefficients;
     private Double from;
@@ -17,63 +17,60 @@ public class GornerTableModel extends AbstractTableModel {
     }
 
     public Double getFrom() {
-        return this.from;
+        return from;
     }
 
     public Double getTo() {
-        return this.to;
+        return to;
     }
 
     public Double getStep() {
-        return this.step;
+        return step;
     }
 
     public int getColumnCount() {
+        // В данной модели три столбца
         return 3;
     }
 
     public int getRowCount() {
-        return (new Double(Math.ceil((this.to - this.from) / this.step))).intValue() + 1;
+        // Вычислить количество точек между началом и концом отрезка
+        // исходя из шага табулирования
+        return (new Double(Math.ceil((to - from) / step))).intValue() + 1;
     }
 
     public Object getValueAt(int row, int col) {
-        double x = this.from + this.step * (double)row;
+        // Вычислить значение X как НАЧАЛО_ОТРЕЗКА + ШАГ * НОМЕР_СТРОКИ
+        double x = from + step * row;
         if (col == 0) {
+            // Если запрашивается значение 1-го столбца, то это X
             return x;
         } else {
-            Double result;
-            int i;
+            // Если запрашивается значение 2-го столбца, то это значение многочлена
+            double result = 0.0;
+            for (int i = 0; i < coefficients.length; ++i) {
+                result += coefficients[i] * Math.pow(x, (double) (coefficients.length - i - 1));
+            }
+
             if (col == 1) {
-                result = 0.0;
-
-                for(i = 0; i < this.coefficients.length; ++i) {
-                    result = result + this.coefficients[i] * Math.pow(x, (double)(this.coefficients.length - i - 1));
-                }
-
                 return result;
             } else {
-                result = 0.0;
-
-                for(i = 0; i < this.coefficients.length; ++i) {
-                    result = result + this.coefficients[i] * Math.pow(x, (double)(this.coefficients.length - i - 1));
-                }
-
-                return Math.floor(result) == 0.0;
+                // Проверка, является ли дробная часть нечётным целым числом
+                double fractionalPart = result - Math.floor(result);
+                int fractionalAsInteger = (int) Math.round(fractionalPart * 100); // Умножаем на 100 для более точной проверки
+                return (fractionalAsInteger % 2 != 0);
             }
         }
     }
 
     public String getColumnName(int col) {
         switch (col) {
-            case 0 -> {
+            case 0:
                 return "Значение X";
-            }
-            case 1 -> {
+            case 1:
                 return "Значение многочлена";
-            }
-            default -> {
-                return "Малое число?";
-            }
+            default:
+                return "Дробная часть нечётная";
         }
     }
 
@@ -81,4 +78,3 @@ public class GornerTableModel extends AbstractTableModel {
         return col == 2 ? Boolean.class : Double.class;
     }
 }
-
