@@ -31,5 +31,5 @@ bin/
 
 /*
 
-!/scr/
+!/src/
 !.gitignore
